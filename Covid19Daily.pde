@@ -10,7 +10,7 @@ PImage flag;
 PFont font;
 
 String flagFilename = "usa.png";  // Flag image must be in the data folder
-String countryName = "US";        // Must match name in time_series_covid19_deaths_global.csv
+String countryName = "United Kingdom";        // Must match name in time_series_covid19_deaths_global.csv
 
 void setup()
 {
@@ -26,14 +26,14 @@ void setup()
   // √57790.52 = 240
   // Multiplying that value by the flag ratio gives the width:
   // 240 × 1.9 = 456
-  
-  maxY = 240;   // Flag height
-  maxX = 456;   // Flag width
+
+  maxX = 284;   // Flag width
+  maxY = 143;   // Flag height
   
   // For smaller deathcounts you may need to consider doubling or tripling the size.
   
   // Add some margins and set the video size:
-  size(480,270);
+  size(592,316);
   
   if(isRecording)
   {
@@ -46,14 +46,16 @@ void setup()
   fill(255);
   halfWidth = width/2;
   halfHeight = height/2;
-  flag = loadImage("usa.png");
+  flag = loadImage("uk.png");
   flag.loadPixels();
+  flagImageWidth = flag.width;
+  flagImageHeight = flag.height;
   
   font = createFont("helvetica-normal-58c348882d347.ttf", 32);
   textFont(font);
 }
 
-int columnOfFirstDeath = 42;
+int columnOfFirstDeath = 48;
 int daysOfData = 0;
 void loadData()
 {
@@ -72,14 +74,15 @@ void loadData()
       for(int column = columnOfFirstDeath; column < columnCount; column++)
       {
         int day = column-columnOfFirstDeath;
-        dates[day] = data[column];
+        String[] date = data[column].split("/");
+        dates[day] = date[1] + "/" + date[0] + "/" + date[2];
         daysOfData = day;
       }
     
       continue;
     }
     
-    if(!data[1].equals(countryName))
+    if(!data[1].equals(countryName) || !data[0].equals(""))
       continue;
     
     for(int column = columnOfFirstDeath; column < columnCount; column++)
@@ -92,6 +95,8 @@ void loadData()
 
 int maxX = 0;
 int maxY = 0;
+int flagImageWidth = 0;
+int flagImageHeight = 0;
 
 int lastCount = 0;
 int halfWidth;
@@ -142,15 +147,17 @@ void draw()
         // Work out the destination flag position
         int x = ((yesterdaysDeaths + thisDeath) % maxX);
         int y = ((yesterdaysDeaths + thisDeath) / maxX);
-        int flagX = (int)(x/float(maxX) * 1235);
-        int flagY = (int)(y/float(maxY) * 649);
+        int flagX = (int)(x/float(maxX) * flagImageWidth);
+        int flagY = (int)(y/float(maxY) * flagImageHeight);
+        
+        x*=2;y*=2;
         
         // Work out the colour of the pixel, it starts of a light grey and fades to the flag colour
         color colour = flag.pixels[flagY * flag.width + flagX];
         color theColour = lerpColor(color(204, 214, 221), colour, lerp);
         
         // Now work out the in flight size and position
-        float blockSize = lerp(4, 1, lerp);
+        float blockSize = lerp(4, 2, lerp);
         float screenX = lerp(screenGridX, x, lerp);
         float screenY = lerp(screenGridY, y, lerp);
         
@@ -176,7 +183,7 @@ void draw()
   if(maxDay > 9)
     textAlpha3 -= 0.02;
     
-  if(maxDay > 100)
+  if(maxDay > 95)
     textAlpha1 -= 0.02;
     
   if(maxDay > daysOfData)
@@ -187,28 +194,28 @@ void draw()
   int dayDeaths = totalDeaths;
   if(maxDay>0) dayDeaths = totalDeaths - deaths[maxDay-1];
   
-  textSize(30);
+  textSize(40);
   fill(255,255,255,255 * textAlpha2);
   textAlign(CENTER);
-  text("One US COVID-19\ndeath per pixel", width/2,50);
+  text("One UK COVID-19\ndeath per pixel", width/2,100);
   
   fill(255,255,255,255 * textAlpha3);
-  textSize(20);
-  text("PixelMoversAndMakers.com\n@KevPluck", width/2,50);
+  textSize(30);
+  text("PixelMoversAndMakers.com\n@KevPluck", width/2,100);
   
   fill(100,100,100,100 * textAlpha1);
-  rect(0,200,width,235);
+  rect(0,230,width,235);
   fill(255,255,255, 255 * textAlpha1);
-  textSize(20);
+  textSize(30);
   textAlign(RIGHT);
-  text(dates[maxDay]+"20",187,230);
+  text(dates[maxDay]+"20",250,270);
   
   String plural = "s";
   if(dayDeaths == 1) plural = "  ";
-  text(nfc(dayDeaths) + " death"+plural,397,230);
+  text(nfc(dayDeaths) + " death"+plural,500,270);
   
   textAlign(CENTER);
-  text(nfc(totalDeaths) + " total",width/2,250);
+  text(nfc(totalDeaths) + " total",width/2,300);
   
   if(isRecording)
     videoExport.saveFrame();
